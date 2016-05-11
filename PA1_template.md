@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
   
 Author: Daniela Petruzalek  
 e-mail: daniela.petruzalek@gmail.com  
@@ -22,7 +17,8 @@ The code below decompress and loads the "activity.csv" file containing the data 
 1. Load the data (i.e. read.csv())
 2. Process/transform the data into a format suitable for the analysis
 
-```{r load_prep, echo = TRUE, message = FALSE}
+
+```r
 library(dplyr)
 library(lattice)
 
@@ -43,7 +39,8 @@ For this part of the assignment, missing values in the dataset were ignored.
 
 1. Make a histogram of the total number of steps taken each day
 
-```{r stepsperday, echo = TRUE}
+
+```r
 spd <- activity %>% 
         group_by(date) %>% 
         summarize(steps_per_day = sum(steps, na.rm = TRUE))
@@ -51,22 +48,24 @@ spd <- activity %>%
 hist(spd$steps_per_day, main = "Frequency of Steps per Day", xlab = "Total Number of Steps") 
 ```
 
+![](PA1_template_files/figure-html/stepsperday-1.png)<!-- -->
+
 2. Calculate and report the mean and median total number of steps taken per day
 
-```{r mean_and_median, echo = TRUE}
 
+```r
 spd_mean   <- mean(spd$steps_per_day)
 spd_median <- median(spd$steps_per_day)
-
 ```
 
-The mean total number of steps taken per day is `r spd_mean` and the median total number of steps taken per day is `r spd_median`.
+The mean total number of steps taken per day is 9354.2295 and the median total number of steps taken per day is 10395.
 
 ## What is the average daily activity pattern?
 
 1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
 
-```{r avg_steps_by_interval, echo = TRUE}
+
+```r
 by_interval <- activity %>% group_by(interval) %>% summarize(avg = mean(steps, na.rm = TRUE))
 
 with(by_interval, {
@@ -75,12 +74,15 @@ with(by_interval, {
 })
 ```
 
+![](PA1_template_files/figure-html/avg_steps_by_interval-1.png)<!-- -->
+
 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-```{r max_avg_steps, echo = TRUE}
+
+```r
 max_steps <- by_interval %>% filter(avg == max(avg))
 ```
 
-The interval which contains the maxium number of steps, on average across all days, is the `r max_steps$interval` minutes interval.
+The interval which contains the maxium number of steps, on average across all days, is the 835 minutes interval.
 
 ## Imputing missing values
 
@@ -88,13 +90,14 @@ Note that there are a number of days/intervals where there are missing values (c
 
 1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs)
 
-```{r missing_values, echo = TRUE}
+
+```r
 steps.na    <- sum(is.na(activity$steps))
 date.na     <- sum(is.na(activity$date))
 interval.na <- sum(is.na(activity$interval))
 ```
 
-The dataset has `r steps.na` missing values for 'steps', `r date.na` missing values for 'date' and `r interval.na` missing values for 'interval'.
+The dataset has 2304 missing values for 'steps', 0 missing values for 'date' and 0 missing values for 'interval'.
 
 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
@@ -102,8 +105,8 @@ The strategy chosen is to replace the NA's with the mean value for the given 5-m
 
 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
-```{r replace_missing, echo = TRUE}
 
+```r
 act_no_miss <- merge(activity, by_interval) %>%              # merge the dataset by the "interval" column
         mutate(steps = ifelse(is.na(steps), avg, steps)) %>% # replace the missing values with the "avg" value
         select(steps, date, interval) %>%                    # drop the "avg" column and reset column order
@@ -112,19 +115,23 @@ act_no_miss <- merge(activity, by_interval) %>%              # merge the dataset
 
 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
-```{r stepsperday_no_miss, echo = TRUE}
+
+```r
 spd_no_miss <- act_no_miss %>% 
         group_by(date) %>% 
         summarize(steps_per_day = sum(steps))
 
 hist(spd_no_miss$steps_per_day, main = "Frequency of Steps per Day", xlab = "Total Number of Steps") 
-
-spd_mean_no_miss   <- mean(spd_no_miss$steps_per_day)
-spd_median_no_miss <- median(spd_no_miss$steps_per_day)
-
 ```
 
-For the adjusted data set, the mean total number of steps taken per day is `r spd_mean_no_miss` and the median total number of steps taken per day is `r spd_median_no_miss`. Those values differ from the original measure by `r spd_mean_no_miss - spd_mean` and `r spd_median_no_miss - spd_median` respectively.
+![](PA1_template_files/figure-html/stepsperday_no_miss-1.png)<!-- -->
+
+```r
+spd_mean_no_miss   <- mean(spd_no_miss$steps_per_day)
+spd_median_no_miss <- median(spd_no_miss$steps_per_day)
+```
+
+For the adjusted data set, the mean total number of steps taken per day is 10766.1887 and the median total number of steps taken per day is 10766.1887. Those values differ from the original measure by 1411.9592 and 371.1887 respectively.
 
 The impact of imputing the missing data is that the histogram now has a higher frequency of steps between 10k and 15k and lower steps on the 0 to 5k range. Also, both the mean and median are now higher than the previous value.
 
@@ -134,8 +141,8 @@ For this part the weekdays() function may be of some help here. Use the dataset 
 
 1. Create a new factor variable in the dataset with two levels -- "weekday" and "weekend" indicating whether a given date is a weekday or weekend day.
 
-```{r is.weekend, echo = TRUE}
 
+```r
 act_week <- act_no_miss %>% # broke the mutate into two calls for clarity
         mutate( is.weekend = ifelse(weekdays(date, abbreviate = TRUE) %in% c("Sat","Sun"), TRUE, FALSE) ) %>%
         mutate( weekday.f  = factor(is.weekend, levels = c(FALSE, TRUE), labels = c("weekday", "weekend") ) )
@@ -143,9 +150,12 @@ act_week <- act_no_miss %>% # broke the mutate into two calls for clarity
 
 2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
 
-```{r avg_steps_by_weekday, echo = TRUE}
+
+```r
 by_interval.w <- act_week %>% group_by(weekday.f, interval) %>% summarize(avg = mean(steps))
 
 xyplot(avg ~ interval | weekday.f, by_interval.w, layout = c(1,2), type = "l", xlab = "Interval", ylab = "Number of steps")
 ```
+
+![](PA1_template_files/figure-html/avg_steps_by_weekday-1.png)<!-- -->
 
